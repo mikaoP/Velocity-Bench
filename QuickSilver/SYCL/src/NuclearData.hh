@@ -459,7 +459,7 @@ public:
       break;
       case Undefined:
 #ifdef DEBUG
-         printf("_reactionType invalid\n");
+         sycl::ext::oneapi::experimental::printf("_reactionType invalid\n");
 #endif
          qs_assert(false);
       }

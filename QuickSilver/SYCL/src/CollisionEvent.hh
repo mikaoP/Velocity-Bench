@@ -173,7 +173,7 @@ inline HOST_DEVICE bool CollisionEvent(MonteCarlo_d *monteCarlo, MC_Particle &mc
       break;
    case NuclearDataReaction::Undefined:
 #ifdef DEBUG
-      printf("reactionType invalid\n");
+      sycl::ext::oneapi::experimental::printf("reactionType invalid\n");
 #endif
       qs_assert(false);
    }

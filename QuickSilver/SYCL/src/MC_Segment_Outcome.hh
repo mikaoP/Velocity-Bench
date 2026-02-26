@@ -124,7 +124,7 @@ inline HOST_DEVICE
         {
 #if 1
 #ifdef DEBUG
-            printf(" MC_Segment_Outcome: mc_particle.num_mean_free_paths > -900.0 \n");
+            sycl::ext::oneapi::experimental::printf(" MC_Segment_Outcome: mc_particle.num_mean_free_paths > -900.0 \n");
 #endif
 #else
             std::string output_string;

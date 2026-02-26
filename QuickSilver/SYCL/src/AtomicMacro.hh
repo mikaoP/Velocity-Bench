@@ -102,7 +102,6 @@ inline T atomic_fetch_add(T *addr, T operand)
 #define ATOMIC_CAPTURE(x, v, p)                                                  \
     {                                                                            \
         using Ty = typename std::remove_reference<decltype(x)>::type;            \
-        \	
     p = atomic_fetch_add<Ty, sycl::access::address_space::generic_space>(&x, v); \
     }
 // If in a CPU OpenMP section use the OpenMP atomics
