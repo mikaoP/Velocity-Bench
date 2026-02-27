@@ -91,11 +91,15 @@ void cycleInit(bool loadBalance);
 void cycleTracking(MonteCarlo *monteCarlo, uint64_cu *, uint64_cu *);
 void cycleFinalize();
 
-inline void copyParticleVault_h2d(ParticleVault_d* P_d, ParticleVault* P)
+inline void copyParticleVault_h2d(ParticleVault_d* P_d, ParticleVault* P, bool first)
 {
     int _particlesSize = P->size();
     int _particlesCap = P->_particles._capacity;
-    MC_Base_Particle* _particles_d = sycl::malloc_device<MC_Base_Particle>(_particlesCap, sycl_device_queue);
+
+    MC_Base_Particle* _particles_d;
+    sycl_device_queue.memcpy(&_particles_d, &(P_d->_particles), sizeof(MC_Base_Particle*)).wait();
+    if (first)
+        _particles_d = sycl::malloc_device<MC_Base_Particle>(_particlesCap, sycl_device_queue);
     if(_particlesSize ==  0) {
 	    sycl_device_queue.memset(&(P_d->_particlesSize), 0, sizeof(int));
 	   sycl_device_queue.memset(_particles_d, 0, _particlesCap*sizeof(MC_Base_Particle));
@@ -104,7 +108,8 @@ inline void copyParticleVault_h2d(ParticleVault_d* P_d, ParticleVault* P)
        sycl_device_queue.memcpy(_particles_d, P->_particles._data, _particlesCap*sizeof(MC_Base_Particle));
         sycl_device_queue.memcpy(&(P_d->_particlesSize), &(P->_particles._size), sizeof(int));
     }
-    sycl_device_queue.memcpy(&(P_d->_particles), &_particles_d, sizeof(MC_Base_Particle*)).wait();
+    if (first)
+        sycl_device_queue.memcpy(&(P_d->_particles), &_particles_d, sizeof(MC_Base_Particle*)).wait();
 }
 
 void copyParticleVault_d2h(ParticleVault* P, ParticleVault_d* P_d)
@@ -114,7 +119,7 @@ void copyParticleVault_d2h(ParticleVault* P, ParticleVault_d* P_d)
     MC_Base_Particle* _particles_add;
     sycl_device_queue.memcpy(&_particles_add, &(P_d->_particles), sizeof(MC_Base_Particle*)).wait();
     sycl_device_queue.memcpy(P->_particles._data, _particles_add, _particlesCap*sizeof(MC_Base_Particle)).wait();
-    sycl::free(_particles_add, sycl_device_queue);
+    // sycl::free(_particles_add, sycl_device_queue);
 }
 
 void copyMonteCarloDevice_first(MonteCarlo* mc, MonteCarlo_d* mc_d)
@@ -156,30 +161,46 @@ void copyMonteCarloDevice_first(MonteCarlo* mc, MonteCarlo_d* mc_d)
     }
 }
 
-void copyMonteCarloDevice_part(MonteCarlo* mc, MonteCarlo_d* mc_d)
+void copyMonteCarloDevice_part(MonteCarlo* mc, MonteCarlo_d* mc_d, bool first)
 {
     sycl_device_queue.memcpy(&(mc_d->domain_d), &(mc->domain_d), sizeof(MC_Domain_d*));
     sycl_device_queue.memcpy(&(mc_d->_material_d), &(mc->_material_d), sizeof(Material_d*));
     sycl_device_queue.memcpy(&(mc_d->_nuclearData_d), &(mc->_nuclearData_d), sizeof(NuclearData_d*));
 
-    MC_Time_Info* time_info_d = sycl::malloc_device<MC_Time_Info>(1, sycl_device_queue);
+    MC_Time_Info* time_info_d;
+    sycl_device_queue.memcpy(&(time_info_d), &(mc_d->time_info_d), sizeof(MC_Time_Info*)).wait();
+    if (first)
+        time_info_d = sycl::malloc_device<MC_Time_Info>(1, sycl_device_queue);
     sycl_device_queue.memcpy(time_info_d, mc->time_info, sizeof(MC_Time_Info));
-    sycl_device_queue.memcpy(&(mc_d->time_info_d), &(time_info_d), sizeof(MC_Time_Info*));
+    if (first)
+        sycl_device_queue.memcpy(&(mc_d->time_info_d), &(time_info_d), sizeof(MC_Time_Info*)).wait();
 
-    ParticleVaultContainer_d* _particleVaultContainer_d = sycl::malloc_device<ParticleVaultContainer_d>(1, sycl_device_queue);
-    sycl_device_queue.memcpy(&(mc_d->_particleVaultContainer_d), &(_particleVaultContainer_d), sizeof(ParticleVaultContainer_d*));
+    ParticleVaultContainer_d* _particleVaultContainer_d;
+    sycl_device_queue.memcpy(&(_particleVaultContainer_d), &(mc_d->_particleVaultContainer_d), sizeof(ParticleVaultContainer_d*)).wait();
+    if (first) {
+        _particleVaultContainer_d = sycl::malloc_device<ParticleVaultContainer_d>(1, sycl_device_queue);
+        sycl_device_queue.memcpy(&(mc_d->_particleVaultContainer_d), &(_particleVaultContainer_d), sizeof(ParticleVaultContainer_d*)).wait();
+    }
     sycl_device_queue.memcpy(&(_particleVaultContainer_d->_vaultSize), &(mc->_particleVaultContainer->_vaultSize), sizeof(uint64_t));
     sycl_device_queue.memcpy(&(_particleVaultContainer_d->_numExtraVaults), &(mc->_particleVaultContainer->_numExtraVaults), sizeof(uint64_t));
     sycl_device_queue.memcpy(&(_particleVaultContainer_d->_extraVaultIndex), &(mc->_particleVaultContainer->_extraVaultIndex), sizeof(uint64_cu));
     int _extraVaultSize = mc->_particleVaultContainer->_extraVault.size();
     sycl_device_queue.memcpy(&(_particleVaultContainer_d->_extraVaultSize), &(_extraVaultSize), sizeof(int));
-    ParticleVault_d ** _extraVault=sycl::malloc_device<ParticleVault_d*>(_extraVaultSize, sycl_device_queue);
-    sycl_device_queue.memcpy(&(_particleVaultContainer_d->_extraVault), &(_extraVault), sizeof(ParticleVault**)).wait();
+    ParticleVault_d ** _extraVault;
+    sycl_device_queue.memcpy(&(_extraVault), &(_particleVaultContainer_d->_extraVault), sizeof(ParticleVault**)).wait();
+    if (first) {
+        _extraVault=sycl::malloc_device<ParticleVault_d*>(_extraVaultSize, sycl_device_queue);
+        sycl_device_queue.memcpy(&(_particleVaultContainer_d->_extraVault), &(_extraVault), sizeof(ParticleVault**)).wait();
+    }
     for(int i=0;i<_extraVaultSize;i++)
     {
-	    ParticleVault_d *tmp = sycl::malloc_device<ParticleVault_d>(1, sycl_device_queue);
-	    copyParticleVault_h2d(tmp, mc->_particleVaultContainer->_extraVault[i]);
-	    sycl_device_queue.memcpy(&(_extraVault[i]), &(tmp), sizeof(ParticleVault*)).wait();
+	    ParticleVault_d *tmp;
+	    sycl_device_queue.memcpy(&(tmp), &(_extraVault[i]), sizeof(ParticleVault*)).wait();
+            if (first)
+    	    	tmp = sycl::malloc_device<ParticleVault_d>(1, sycl_device_queue);
+	    copyParticleVault_h2d(tmp, mc->_particleVaultContainer->_extraVault[i], first);
+            if (first)
+    	    	sycl_device_queue.memcpy(&(_extraVault[i]), &(tmp), sizeof(ParticleVault*)).wait();
     }
 }
 
@@ -188,7 +209,7 @@ void copyMonteCarloHost_part(MonteCarlo_d* mc_d, MonteCarlo* mc)
     MC_Time_Info *tmp;
     sycl_device_queue.memcpy(&tmp, &(mc_d->time_info_d), sizeof(MC_Time_Info*)).wait();
     sycl_device_queue.memcpy(mc->time_info, tmp, sizeof(MC_Time_Info)).wait();
-    sycl::free(tmp,sycl_device_queue);
+    // sycl::free(tmp,sycl_device_queue);
 
     ParticleVaultContainer_d* tmp_p;
     sycl_device_queue.memcpy(&tmp_p, &(mc_d->_particleVaultContainer_d), sizeof(ParticleVaultContainer_d*)).wait();
@@ -204,10 +225,10 @@ void copyMonteCarloHost_part(MonteCarlo_d* mc_d, MonteCarlo* mc)
 	ParticleVault_d *tmp_0;
 	sycl_device_queue.memcpy(&tmp_0, &(tmp_ev[i]), sizeof(ParticleVault_d *)).wait();
         copyParticleVault_d2h(mc->_particleVaultContainer->_extraVault[i], tmp_0);
-	sycl::free(tmp_0, sycl_device_queue);
+	// sycl::free(tmp_0, sycl_device_queue);
     }
-    sycl::free(tmp_ev, sycl_device_queue);
-    sycl::free(tmp_p, sycl_device_queue);
+    // sycl::free(tmp_ev, sycl_device_queue);
+    // sycl::free(tmp_p, sycl_device_queue);
 }
 
 void copyMonteCarloHost_last(MonteCarlo_d* mc_d, MonteCarlo* mc)
@@ -235,12 +256,12 @@ void copyMonteCarloHost_last(MonteCarlo_d* mc_d, MonteCarlo* mc)
                 sycl_device_queue.memcpy(mc->_tallies->_scalarFluxDomain[i]._task[j]._cell[k]._group, tmp_d, _size*sizeof(double)).wait();
                 sycl::free(tmp_d, sycl_device_queue);
             }
-            sycl::free(tmp_cell, sycl_device_queue);
+            // sycl::free(tmp_cell, sycl_device_queue);
         }
-        sycl::free(tmp_task, sycl_device_queue);
+    //     sycl::free(tmp_task, sycl_device_queue);
     }
-    sycl::free(tmp_s, sycl_device_queue);
-    sycl::free(tmp_t, sycl_device_queue);
+    // sycl::free(tmp_s, sycl_device_queue);
+    // sycl::free(tmp_t, sycl_device_queue);
 }
 
 void setGPU()
@@ -461,6 +482,12 @@ void cycleTracking(MonteCarlo *monteCarlo, uint64_cu *tallies, uint64_cu *tallie
     const int replications = monteCarlo->_tallies->GetNumBalanceReplications();
     MonteCarlo_d *monteCarlo_d = sycl::malloc_device<MonteCarlo_d>(1, sycl_device_queue);
     copyMonteCarloDevice_first(monteCarlo, monteCarlo_d);
+
+#if defined(HAVE_SYCL)
+    ParticleVault_d *processingVault_d = sycl::malloc_device<ParticleVault_d>(1, sycl_device_queue);
+    ParticleVault_d *processedVault_d = sycl::malloc_device<ParticleVault_d>(1, sycl_device_queue);
+    bool first = true;
+#endif
     do
     {
         int particle_count = 0; // Initialize count of num_particles processed
@@ -499,12 +526,9 @@ void cycleTracking(MonteCarlo *monteCarlo, uint64_cu *tallies, uint64_cu *tallie
                         unsigned int wg_size = 256;
                         unsigned int num_wgs = (N + wg_size - 1) / wg_size;
 
-                ParticleVault_d *processingVault_d = sycl::malloc_device<ParticleVault_d>(1, sycl_device_queue);
-                ParticleVault_d *processedVault_d = sycl::malloc_device<ParticleVault_d>(1, sycl_device_queue);
-
-                copyParticleVault_h2d(processingVault_d, processingVault);
-                copyParticleVault_h2d(processedVault_d, processedVault);
-                copyMonteCarloDevice_part(monteCarlo, monteCarlo_d);
+                copyParticleVault_h2d(processingVault_d, processingVault, first);
+                copyParticleVault_h2d(processedVault_d, processedVault, first);
+                copyMonteCarloDevice_part(monteCarlo, monteCarlo_d, first);
                 sycl_device_queue.wait();
 
                 MC_FASTTIMER_START(MC_Fast_Timer::cycleTracking_Kernel);
@@ -542,8 +566,8 @@ void cycleTracking(MonteCarlo *monteCarlo, uint64_cu *tallies, uint64_cu *tallie
 	        copyParticleVault_d2h(processedVault, processedVault_d);
             copyMonteCarloHost_part(monteCarlo_d, monteCarlo);
 
-			sycl::free(processingVault_d, sycl_device_queue);
-			sycl::free(processedVault_d, sycl_device_queue);
+            first = false;
+
 #endif
                     }
                     break;
@@ -659,6 +683,17 @@ void cycleTracking(MonteCarlo *monteCarlo, uint64_cu *tallies, uint64_cu *tallie
         }
 
     } while (!done);
+
+#if defined(HAVE_SYCL)
+    MC_Base_Particle* _particles_add;
+    sycl_device_queue.memcpy(&_particles_add, &(processingVault_d->_particles), sizeof(MC_Base_Particle*)).wait();
+    sycl::free(_particles_add, sycl_device_queue);
+    sycl_device_queue.memcpy(&_particles_add, &(processedVault_d->_particles), sizeof(MC_Base_Particle*)).wait();
+    sycl::free(_particles_add, sycl_device_queue);
+
+    sycl::free(processingVault_d, sycl_device_queue);
+    sycl::free(processedVault_d, sycl_device_queue);
+#endif
 
     // Make sure to cancel all pending receive requests
     monteCarlo->particle_buffer->Cancel_Receive_Buffer_Requests();
