@@ -48,9 +48,9 @@
     time_total  = std::chrono::duration<double, std::milli>(time_end - time_start).count();
 #define TIMER_PRINT(name) std::cout << name <<": " << (time_total - time_total_) / 1e3 << " s\n";
 
-// #ifndef DEBUG_TIME
-// #define DEBUG_TIME
-// #endif
+#ifndef DEBUG_TIME
+#define DEBUG_TIME
+#endif
 
 uint32_t max_num_pswd_per_read = 0;
 

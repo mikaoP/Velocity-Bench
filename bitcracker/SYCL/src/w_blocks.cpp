@@ -56,6 +56,10 @@
 			+ (ROR(d_w_words_uint32[j - 15],  7) ^ ROR(d_w_words_uint32[j - 15], 18) ^ (d_w_words_uint32[j - 15] >>  3))  \
 			+ (ROR(d_w_words_uint32[j -  2], 17) ^ ROR(d_w_words_uint32[j -  2], 19) ^ (d_w_words_uint32[j -  2] >> 10));
 
+#ifndef DEBUG_TIME
+#define DEBUG_TIME
+#endif
+
 void kernel_w_block(
     unsigned char salt[SALT_SIZE],
     unsigned char padding[40],
