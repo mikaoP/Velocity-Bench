@@ -71,7 +71,7 @@ class LNormLayerController {
 
             LangHandle *langHandle = new LangHandle(timer);
 
-            sycl::device* dht = new sycl::device(sycl::gpu_selector_v);
+            sycl::device* dht = new sycl::device(sycl::cpu_selector_v);
             sycl::context context(*dht);
             sycl::queue sycl_queue(context, *dht);
 

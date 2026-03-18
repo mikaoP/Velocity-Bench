@@ -61,7 +61,7 @@ namespace dl_cifar::common {
 
 
         d_clsEmbPlusPatchEmbs_ = langHandle->allocDevMem((clsEmbPlusPatchEmbSize_) * sizeof(float));
-        d_d_clsEmbPlusPatchEmbs_ = langHandle->allocDevMem((clsEmbPlusPatchEmbSize_) * sizeof(float));
+        // d_d_clsEmbPlusPatchEmbs_ = langHandle->allocDevMem((clsEmbPlusPatchEmbSize_) * sizeof(float));
 
         for( int i=0; i<batchSize_; i++) {             
             langHandle->memCpyD2D(d_clsEmbPlusPatchEmbs_ + (i * ((1 + noOfEmbs_) * embSize_)), d_inputClsEmb_ + (i * (1 * embSize_)), 
@@ -182,7 +182,7 @@ namespace dl_cifar::common {
                             d_QKt_ + (i*qkTStride), d_d_outputClsEmbPerHead_ + (i*outputClsEmbPerHeadStride), d_dV_ + (i*kvStride)));
         }
 
-        softmaxLayer_->doFw();
+        softmaxLayer_->doBw();
 
         assertBlasInvar(BlasRoutines::scaleVector(langHandle_, QKt_size_, &scale_bw_, d_d_QKt_, 1));
 

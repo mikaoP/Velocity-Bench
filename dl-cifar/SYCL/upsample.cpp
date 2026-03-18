@@ -42,12 +42,15 @@ void Upsampler::upsample(LangHandle *langHandle, float *d_src, float *d_dst, int
     // std::cout<< "noOfImgs = " << noOfImgs << std::endl;
     // std::cout<< "blockSize = " << blockSize << std::endl;
     // std::cout<< "gridSize = " << gridSize << std::endl;
+    size_t gridSize_size_t = gridSize;
+    size_t blockSize_size_t = blockSize;
 
 
+    // fprintf(stderr, "START Upsampler::upsample\n");
     langHandle->getSyclQueue()->submit([&](sycl::handler& h) {
-        h.parallel_for(sycl::range{static_cast<size_t>(gridSize), static_cast<size_t>(blockSize)},  [=](sycl::id<2> idx) {
+        h.parallel_for(sycl::range{gridSize_size_t, blockSize_size_t},  [=](sycl::id<2> idx) {
 
-            int linearSegmentIdx = idx[0]*blockSize+idx[1];
+            int linearSegmentIdx = idx[0]*blockSize_size_t+idx[1];
 
 
             int src_noOfPixelsPerImg = srcWidth * srcHeight;
@@ -80,6 +83,7 @@ void Upsampler::upsample(LangHandle *langHandle, float *d_src, float *d_dst, int
         });
     });
     langHandle->getSyclQueue()->wait();
+    // fprintf(stderr, "END Upsampler::upsample\n");
 
     Tracer::func_end("Upsampler::upsample");   
 }
@@ -137,7 +141,7 @@ void UpsamplerController::execute() {
     Timer* timer = new Timer();            
     LangHandle *langHandle = new LangHandle(timer);
 
-    sycl::device* dht = new sycl::device(sycl::gpu_selector_v);
+    sycl::device* dht = new sycl::device(sycl::cpu_selector_v);
     sycl::context context(*dht);
     sycl::queue sycl_queue(context, *dht);
 

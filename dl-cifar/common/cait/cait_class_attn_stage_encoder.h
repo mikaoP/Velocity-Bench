@@ -41,14 +41,23 @@ namespace dl_cifar::common {
             int noOfEmbs_;
             int batchSize_, embSize_, intermediateEmbSize_;
 
-            float *d_clsEmb_, *d_d_clsEmb_; 
-            const float * const d_patchEmbs_;
-            float *d_d_patchEmbs_;
-            float *d_lNormedPatchEmbs_, *d_d_lNormedPatchEmbs_, *d_d_normedPatchOutput_;
-            float *d_lNormedClsEmb1_,  *d_d_lNormedClsEmb1_,  *d_d_normedCls1Output_;
-            float *d_lNormedClsEmb2_,  *d_d_lNormedClsEmb2_,  *d_d_normedCls2Output_;
-            float *d_attnResidual_, *d_d_attnResidual_;
-            float *d_mlpResidual_,  *d_d_mlpResidual_;
+            float *d_clsEmb_ = nullptr;
+            float *d_d_clsEmb_ = nullptr; 
+            const float * const d_patchEmbs_ = nullptr;
+            float *d_d_patchEmbs_ = nullptr;
+            float *d_lNormedPatchEmbs_ = nullptr;
+            float *d_d_lNormedPatchEmbs_ = nullptr;
+            float *d_d_normedPatchOutput_ = nullptr;
+            float *d_lNormedClsEmb1_ = nullptr;
+            float *d_d_lNormedClsEmb1_ = nullptr;
+            float *d_d_normedCls1Output_ = nullptr;
+            float *d_lNormedClsEmb2_ = nullptr;
+            float *d_d_lNormedClsEmb2_ = nullptr;
+            float *d_d_normedCls2Output_ = nullptr;
+            float *d_attnResidual_ = nullptr;
+            float *d_d_attnResidual_ = nullptr;
+            float *d_mlpResidual_ = nullptr;
+            float *d_d_mlpResidual_ = nullptr;
 
             CaitMultiHeadedClassAttn *caitMultiHeadedClassAttn_;
             LNormLayer *lNormPatchLayer_, *lNormClsLayer1_, *lNormClsLayer2_;
@@ -70,10 +79,11 @@ namespace dl_cifar::common {
 
 
                 // -------------initialization for multi headed class attention --------------------------------------------
-                int lNormedPatchEmbsSize = batchSize * noOfEmbs * embSize;
+                int lNormedPatchEmbsSize = batchSize * (1 + noOfEmbs) * embSize;
                 d_lNormedPatchEmbs_ = langHandle->allocDevMem((lNormedPatchEmbsSize) * sizeof(float));
                 d_d_lNormedPatchEmbs_ = langHandle->allocDevMem((lNormedPatchEmbsSize) * sizeof(float));
                 d_d_normedPatchOutput_ = langHandle->allocDevMem((lNormedPatchEmbsSize) * sizeof(float));
+                // fprintf(stderr, "CTOR this %p d_lNormedPatchEmbs_ %p d_d_lNormedPatchEmbs_ %p d_d_normedPatchOutput_ %p\n", this, d_lNormedPatchEmbs_, d_d_lNormedPatchEmbs_, d_d_normedPatchOutput_);
 
                 int lNormedClsEmb1Size = batchSize * 1 * embSize_;
                 d_lNormedClsEmb1_ = langHandle->allocDevMem((lNormedClsEmb1Size) * sizeof(float));
@@ -194,6 +204,7 @@ namespace dl_cifar::common {
                 delete lNormPatchLayer_;
                 delete lNormClsLayer1_;
                 delete lNormClsLayer2_;
+                // fprintf(stderr, "DTOR this %p d_lNormedPatchEmbs_ %p d_d_lNormedPatchEmbs_ %p d_d_normedPatchOutput_ %p\n", this, d_lNormedPatchEmbs_, d_d_lNormedPatchEmbs_, d_d_normedPatchOutput_);
                 langHandle_->freeDevPtr(d_lNormedPatchEmbs_);
                 langHandle_->freeDevPtr(d_d_lNormedPatchEmbs_);
                 langHandle_->freeDevPtr(d_d_normedPatchOutput_);

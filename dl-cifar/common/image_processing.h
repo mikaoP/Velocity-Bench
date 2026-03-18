@@ -106,12 +106,15 @@ namespace dl_cifar::common {
                 static size_t cacheSize{0};
                 static std::unique_ptr<float[]> cacheImage{};
                 static unsigned seed = 123456789;
+                if (imageSize < 0)
+                    abort();
 
                 // grow the cache allocation to image size
                 if (imageSize > cacheSize) {
                     auto newCacheImage = std::make_unique<float[]>(imageSize);
-                    std::memcpy(newCacheImage.get(), cacheImage.get(), cacheSize*sizeof(float));
-                    cacheImage.reset(newCacheImage.release());
+                    if (cacheImage != 0)
+                      std::memcpy(newCacheImage.get(), cacheImage.get(), cacheSize*sizeof(float));
+                    cacheImage = std::move(newCacheImage);
                 }
 
                 // fill image with cached data and compute the remaining part

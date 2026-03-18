@@ -101,7 +101,6 @@ namespace dl_cifar::common {
                 d_inputClsEmb = langHandle->allocDevMem((clsSize) * sizeof(float));
                 d_d_inputClsEmb = langHandle->allocDevMem((clsSize) * sizeof(float));
 
-
                 //---------- create output class emb -----------------------
                 float *d_outputClsEmb, *d_d_outputClsEmb;
                 size_t outputClsSize = batchSize * 1 * intermediateEmbSize;

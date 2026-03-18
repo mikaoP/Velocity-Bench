@@ -96,7 +96,7 @@ class LangHandle {
 
 
             //dht_ = new sycl::device(sycl::gpu_selector_v); 
-            dht_ = new sycl::device(sycl::gpu_selector_v); 
+            dht_ = new sycl::device(sycl::cpu_selector_v); 
 #ifdef DEVICE_TIMER  
             start = get_time_now();
 #endif    
@@ -245,7 +245,7 @@ class LangHandle {
 
 
 
-            dht_ = new sycl::device(sycl::gpu_selector_v); 
+            dht_ = new sycl::device(sycl::cpu_selector_v); 
 #ifdef DEVICE_TIMER  
             start = get_time_now();
 #endif    
@@ -349,7 +349,7 @@ class LangHandle {
 
     public:
         LangHandle(Timer* timer): timer_(timer) {
-            dht_ = new sycl::device(sycl::gpu_selector_v); 
+            dht_ = new sycl::device(sycl::cpu_selector_v); 
 #ifdef DEVICE_TIMER  
             start = get_time_now();
 #endif    
@@ -413,10 +413,12 @@ class LangHandle {
 
         float* allocDevMem(size_t size) {
             float *d_ptr = (float *)sycl::malloc_device(size, *sycl_queue_);
+            // fprintf(stderr, "LangHandle alloc this %p %p\n", this, d_ptr);
             return d_ptr;
         }
 
         void freeDevPtr(float* devPtr) {
+            // fprintf(stderr, "LangHandle free this %p %p\n", this, devPtr);
             sycl::free(devPtr, *sycl_queue_);   
         }
 
