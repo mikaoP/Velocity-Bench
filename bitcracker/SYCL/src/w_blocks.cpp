@@ -42,6 +42,10 @@
 #include <iostream>
 #include <chrono>
 
+#ifndef DEBUG_TIME
+#define DEBUG_TIME
+#endif
+
 #define ROR(x, i) (((x) << (32 - (i))) | ((x) >> (i)))
 
 #define LOADSCHEDULE_WPRE(j, i)  \

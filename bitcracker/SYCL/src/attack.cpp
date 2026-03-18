@@ -41,6 +41,10 @@
 #include "bitcracker.h"
 #include "aes.h"
 
+#ifndef DEBUG_TIME
+#define DEBUG_TIME
+#endif
+
 #define TIMER_START_() time_start_ = std::chrono::steady_clock::now();
 #define TIMER_END_()                                                                         \
     time_end_ = std::chrono::steady_clock::now();                                            \
@@ -1082,18 +1086,19 @@ double attack(
 
 #ifdef DEBUG_TIME
         auto time_iter11 = std::chrono::steady_clock::now();
-        // auto time21 = std::chrono::steady_clock::now();
+        auto time21 = std::chrono::steady_clock::now();
 #endif
 
         // copy h_pswd_uint32 over to d_pswd_uint32
         auto e1 = qbc.memcpy(d_pswd_uint32, h_pswd_uint32, num_read_pswd * PSWD_NUM_UINT32 * sizeof(uint32_t));
+        qbc.wait();
 
-        // auto time22 = std::chrono::steady_clock::now();
-        // auto duration2 = std::chrono::duration<double, std::micro>(time22 - time21).count();
-        // duration += duration2;
-        // std::cout << "attack() - memcpy H2D: " << duration2 << " us\n\n";
+        auto time22 = std::chrono::steady_clock::now();
+        auto duration2 = std::chrono::duration<double, std::micro>(time22 - time21).count();
+        duration += duration2;
+        std::cout << "attack() - memcpy H2D: " << duration2 << " us\n\n";
 
-        // auto time31 = std::chrono::steady_clock::now();
+        auto time31 = std::chrono::steady_clock::now();
 
         // launch kernel
         unsigned int wg_size  = 256; // wg_size tuned to 256
@@ -1104,7 +1109,7 @@ double attack(
                 sycl::nd_range<1>(in_range, wg_size),
                 [=](sycl::nd_item<1> item)
             #if !defined(USE_NVIDIA_BACKEND) && !defined(USE_AMDHIP_BACKEND)
-                [[intel::reqd_sub_group_size(16)]]
+                [[sycl::reqd_sub_group_size(16)]]
             #endif
                 {
                     decrypt_vmk_with_mac(
@@ -1134,22 +1139,23 @@ double attack(
                 }
             );
         });
+        qbc.wait();
 
-        // auto time32 = std::chrono::steady_clock::now();
-        // auto duration3 = std::chrono::duration<double, std::micro>(time32 - time31).count();
-        // duration += duration3;
-        // std::cout << "attack() - decrypt_vmk_with_mac(): " << duration3 << " us\n\n";
+        auto time32 = std::chrono::steady_clock::now();
+        auto duration3 = std::chrono::duration<double, std::micro>(time32 - time31).count();
+        duration += duration3;
+        std::cout << "attack() - decrypt_vmk_with_mac(): " << duration3 << " us\n\n";
 
-        // auto time41 = std::chrono::steady_clock::now();
+        auto time41 = std::chrono::steady_clock::now();
 
         // copy d_found from device to h_found in host
         qbc.memcpy(h_found, d_found, sizeof(unsigned int), std::move(e2));
         qbc.wait();
 
-        // auto time42 = std::chrono::steady_clock::now();
-        // auto duration4 = std::chrono::duration<double, std::micro>(time42 - time41).count();
-        // duration += duration4;
-        // std::cout << "attack() - memcpy D2H: " << duration4 << " us\n\n";
+        auto time42 = std::chrono::steady_clock::now();
+        auto duration4 = std::chrono::duration<double, std::micro>(time42 - time41).count();
+        duration += duration4;
+        std::cout << "attack() - memcpy D2H: " << duration4 << " us\n\n";
 
 #ifdef DEBUG_TIME
         auto time_iter12 = std::chrono::steady_clock::now();

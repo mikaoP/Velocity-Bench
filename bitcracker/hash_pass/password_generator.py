@@ -4,7 +4,8 @@ from pathlib import Path
 
 min_password_len = 8
 max_password_len = 27
-num_passwords = 72 * 1024
+num_passwords = 512
+# num_passwords = 72 * 1024
 output_file = Path('user_passwords_large.txt')
 
 with output_file.open('w') as fout:
