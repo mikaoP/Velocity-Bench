@@ -51,9 +51,9 @@
     tot_time += duration;
 #define PRINT_TIMER(name) std::cout <<name <<"      :" << duration << " ms\n";
 
-// #ifndef DEBUG_TIME
-// #define DEBUG_TIME
-// #endif
+#ifndef DEBUG_TIME
+#define DEBUG_TIME
+#endif
 
 #undef CPP_MODULE
 #define CPP_MODULE "SYMN"
@@ -118,7 +118,8 @@ void computeGradient(
 
     // output[index] = sycl::sqrt(sycl::pow<float>(gradient_x, 2.f) +
                             //    sycl::pow<float>(gradient_y, 2.f));
-    output[index] = sycl::sqrt(gradient_x * gradient_x + gradient_y * gradient_y);
+    float mag = sycl::sqrt(gradient_x * gradient_x + gradient_y * gradient_y);
+    output[index] = static_cast<unsigned char>(std::max(0.f, std::min(255.f, mag)));
 }
 
 int main(int argc, const char* argv[])

@@ -87,7 +87,8 @@ void computeGradient_scalar(const Mat &input, Mat &strength)
                     gradient_y += gradienty[k1+1][k2+1] * input.data[iPixelPos];
                 }
             }
-            strength.data[oPixelPos] = sqrtf(powf(gradient_x, 2.f) + powf(gradient_y, 2.f));
+            float mag = std::sqrt(powf(gradient_x, 2.f) + powf(gradient_y, 2.f));
+            strength.data[oPixelPos] = static_cast<unsigned char>(std::max(0.f, std::min(255.f, mag)));
         }
     }
     imwrite("../res/scalar.bmp", strength);
