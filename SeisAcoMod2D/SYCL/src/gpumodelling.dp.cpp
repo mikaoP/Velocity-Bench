@@ -22,6 +22,8 @@
 #define Block_size1 16
 #define Block_size2 16
 
+#define DEBUG_TIME
+
 using namespace std;
 
 const int npml = 32;      /* thickness of PML boundary */
