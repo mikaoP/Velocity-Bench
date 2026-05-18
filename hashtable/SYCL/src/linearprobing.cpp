@@ -65,6 +65,7 @@ void gpu_hashtable_insert(
         uint32_t value = kvs[tid].value;
         uint32_t slot  = hash(key);
 
+#if 1
         while (true) {
             uint32_t prev = acas::atomic_compare_exchange_strong(&hashtable[slot].key, kEmpty, key);
             if (prev == kEmpty || prev == key) {
@@ -74,6 +75,15 @@ void gpu_hashtable_insert(
 
             slot = (slot + 1) & (kHashTableCapacity - 1);
         }
+#else
+        for (; slot < kHashTableCapacity; ++slot) {
+            uint32_t prev = acas::atomic_compare_exchange_strong(&hashtable[slot].key, kEmpty, key);
+            if (prev == kEmpty || prev == key) {
+                hashtable[slot].value = value;
+                return;
+            }
+        }
+#endif
     }
 }
 

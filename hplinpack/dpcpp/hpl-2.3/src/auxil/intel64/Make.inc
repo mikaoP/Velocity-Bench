@@ -1,1 +1,1 @@
-/home/kmcgrie/OneBench/temp/applications.benchmarking.oneapi.onebench/hplinpack/dpcpp/hpl-2.3/Make.intel64
+/gpfs/scratch/bsc15/bsc015728/sycl_pocl/Velocity-Bench/hplinpack/dpcpp/hpl-2.3/Make.intel64

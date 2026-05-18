@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 	auto totalProgTimer_start = std::chrono::steady_clock::now();
 	total_gpu_time = 0.0;
 	// HOIST INTO SETUP FUNCTION EVENTUALLY
-	sycl_device_queue = sycl::gpu_selector{};
+	sycl_device_queue = sycl::queue(sycl::default_selector_v, q_prop);
 
 	// PRINT PROGRAM INFO
 	printHeader();

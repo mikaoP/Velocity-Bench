@@ -77,7 +77,7 @@ void ZeroExtension::VelocityExtensionHelper(float *property_array,
         cgh.parallel_for<class Zero_velocity_extension_X>(
                 global_nd_range, [=](nd_item<2> it) {
                     int column = it.get_global_id(0);
-                    int row = it.get_global_id(2) + start_z;
+                    int row = it.get_global_id(1) + start_z;
 
                     /*!for values from y = HALF_LENGTH TO y = HALF_LENGTH +BOUND_LENGTH*/
                     property_array[row * nx + column + start_x] = 0;
@@ -96,7 +96,7 @@ void ZeroExtension::VelocityExtensionHelper(float *property_array,
         cgh.parallel_for<class Zero_velocity_extension_Z>(
                 global_nd_range, [=](nd_item<2> it) {
                     int column = it.get_global_id(0) + start_x;
-                    int row = it.get_global_id(2);
+                    int row = it.get_global_id(1);
 
                     /*!for values from y = HALF_LENGTH TO y = HALF_LENGTH +BOUND_LENGTH*/
                     property_array[(start_z + row) * nx + column] = 0;

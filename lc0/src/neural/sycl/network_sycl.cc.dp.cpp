@@ -46,6 +46,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <functional>
 #include <list>
 #include <memory>
@@ -181,9 +182,6 @@ class CudaNetwork : public Network {
   CudaNetwork(const WeightsFile& file, const OptionsDict& options)
       : capabilities_{file.format().network_format().input(),
                       file.format().network_format().moves_left()} {
-    
-     
-    
     LegacyWeights weights(file.weights());
 
     gpu_id_ = options.GetOrDefault<int>("gpu", 0);

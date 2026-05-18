@@ -113,241 +113,265 @@ void inline checkCudaErrorMsg(CUresult status, const char *msg) {
 
 #endif
 
-
-
 template <unsigned int blockSize>
-void FindBJ(float *d_F, float* d_y,float* d_alpha,float* d_KernelCol,float *g_odata,int* g_index,float BIValue, unsigned int n,
-            sycl::nd_item<3> item_ct1, float C, float taumin, float *sdata,
-            int *ind)
+void FindBJ(float *d_F, float *d_y, float *d_alpha, float *d_KernelCol,
+            float *g_odata, int *g_index, float BIValue, unsigned int n,
+            sycl::nd_item<3> item_ct1, float C, float taumin,
+            float *sdata, int *ind)
 {
-
     unsigned int tid = item_ct1.get_local_id(2);
     unsigned int i = item_ct1.get_group(2) * (blockSize * 2) + tid;
     unsigned int gridSize = blockSize * 2 * item_ct1.get_group_range(2);
-        sdata[tid]=-FLT_MAX;
-	ind[tid]=0;
 
-	float temp;
-	float globaltemp;
+    sdata[tid] = -FLT_MAX;
+    ind[tid] = 0;
 
-	float LocalCloseY;
-	float LocalFarY;
-	float maxtemp;
-	float denomclose;
-	float denomfar=1.f;
+    float temp;
+    float globaltemp;
 
+    float LocalCloseY;
+    float LocalFarY;
+    float maxtemp;
+    float denomclose;
+    float denomfar = 1.f;
 
-	while (i < n) 
-	{ 
-		LocalCloseY=d_y[i];
-		LocalFarY=(i+blockSize)<n ? d_y[i+blockSize]:0.f;
-		denomclose=(2.f-2.f*d_KernelCol[i]);
-		if(i+blockSize<n){denomfar=(2.f-2.f*d_KernelCol[i+blockSize]);}
+    while (i < n)
+    {
+        LocalCloseY = d_y[i];
+        LocalFarY = (i + blockSize) < n ? d_y[i + blockSize] : 0.f;
 
+        denomclose = (2.f - 2.f * d_KernelCol[i]);
+        if (i + blockSize < n)
+        {
+            denomfar = (2.f - 2.f * d_KernelCol[i + blockSize]);
+        }
 
-		denomclose=denomclose<taumin?taumin:denomclose;
-		denomfar=denomfar<taumin?taumin:denomfar;
+        denomclose = denomclose < taumin ? taumin : denomclose;
+        denomfar = denomfar < taumin ? taumin : denomfar;
 
         maxtemp = sycl::fmax(
-        globaltemp =
-          (LocalCloseY * d_alpha[i]) > (LocalCloseY == 1 ? 0 : -C)
-              ? sycl::pow(BIValue + LocalCloseY * d_F[i], 2.f) / denomclose
-              : -FLT_MAX,
-        i + blockSize < n
-          ? ((LocalFarY * d_alpha[i + blockSize]) > (LocalFarY == 1 ? 0 : -C)
-                 ? sycl::pow(BIValue + LocalFarY * d_F[i + blockSize], 2.f) /
-                       denomfar
-                 : -FLT_MAX)
-          : -FLT_MAX);
-
-        sdata[tid] = sycl::fmax(temp = sdata[tid], maxtemp);
-
-        if (sdata[tid]!=temp)
-		{
-			sdata[tid]== globaltemp ? ind[tid]=i : ind[tid]=i+blockSize;
-		}
-
-		i += gridSize; 
-	}
-
-    item_ct1.barrier();
-
-    if (tid < 128) {
-        if (sdata[tid] < sdata[tid + 128]) {
-            ind[tid] = ind[tid + 128]; sdata[tid] = sdata[tid + 128];
-        }
-    } 
- 
-    item_ct1.barrier();
-
-    if (tid < 64) {
-        if (sdata[tid] < sdata[tid + 64]) {
-        ind[tid] = ind[tid + 64]; sdata[tid] = sdata[tid + 64];
-        }
-    } 
- 
-    item_ct1.barrier();
-
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 32])) {
-        ind[tid] = ind[tid + 32]; sdata[tid] = sdata[tid + 32];
-    } 
-        
-    item_ct1.barrier();
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 16])) {
-        ind[tid] = ind[tid + 16]; sdata[tid] = sdata[tid + 16];
-    } 
-        
-    item_ct1.barrier();
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 8])) {
-        ind[tid] = ind[tid + 8]; 
-        sdata[tid] = sdata[tid + 8];
-    } 
-        
-    item_ct1.barrier();
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 4])) {
-        ind[tid] = ind[tid + 4]; 
-        sdata[tid] = sdata[tid + 4];
-    } 
-        
-    item_ct1.barrier();
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 2])) {
-        ind[tid] = ind[tid + 2]; sdata[tid] = sdata[tid + 2];
-    } 
-        
-        
-    item_ct1.barrier();
-        
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 1]))  {
-        ind[tid] = ind[tid + 1]; sdata[tid] = sdata[tid + 1];
-    } 
-        
-    item_ct1.barrier();
-        
-    if (tid == 0) g_odata[item_ct1.get_group(2)] = sdata[0];
-    if (tid == 0) g_index[item_ct1.get_group(2)] = ind[0];
-}
-
-//float C problems
-template <unsigned int blockSize>
-void FindBI(float *d_F, float* d_y,float* d_alpha,float *g_odata,int* g_index,unsigned int n,
-            sycl::nd_item<3> item_ct1, float C, float *sdata, int *ind)
-{
-
- unsigned int tid = item_ct1.get_local_id(2);
- unsigned int i = item_ct1.get_group(2) * (blockSize * 2) + tid;
- unsigned int gridSize = blockSize * 2 * item_ct1.get_group_range(2);
- sdata[tid]=-FLT_MAX;
- ind[tid]=0;
-
-
-   
-	float temp;
-	float globaltemp;
-
-	float LocalCloseY;
-	float LocalFarY;
-	float maxtemp;
-
-
-     
-	while (i < n) 
-    { 
-		LocalCloseY=d_y[i];
-		LocalFarY=(i+blockSize)<n ? d_y[i+blockSize]:0;
-
-        maxtemp = sycl::fmax(
-            globaltemp = (LocalCloseY * d_alpha[i]) < (LocalCloseY == 1 ? C : 0)
-                       ? -(d_F[i] * LocalCloseY)
-                       : -FLT_MAX,
+            globaltemp =
+                (LocalCloseY * d_alpha[i]) > (LocalCloseY == 1 ? 0 : -C)
+                    ? sycl::pow(BIValue + LocalCloseY * d_F[i], 2.f) / denomclose
+                    : -FLT_MAX,
             i + blockSize < n
-            ? ((LocalFarY * d_alpha[i + blockSize]) < (LocalFarY == 1 ? C : 0)
-                 ? -(d_F[i + blockSize] * LocalFarY)
-                 : -FLT_MAX) : -FLT_MAX);
+                ? ((LocalFarY * d_alpha[i + blockSize]) >
+                           (LocalFarY == 1 ? 0 : -C)
+                       ? sycl::pow(BIValue + LocalFarY * d_F[i + blockSize], 2.f) /
+                             denomfar
+                       : -FLT_MAX)
+                : -FLT_MAX);
 
         sdata[tid] = sycl::fmax(temp = sdata[tid], maxtemp);
 
-                if (sdata[tid]!=temp)
-		        {
-			        sdata[tid]== globaltemp ? ind[tid]=i : ind[tid]=i+blockSize;
-		        }
-
-		i += gridSize; 
-	}
-
-    item_ct1.barrier();
- 
-    
-    if (tid < 128) {
-        if (sdata[tid] < sdata[tid + 128]) {
-            ind[tid] = ind[tid + 128]; 
-            sdata[tid] = sdata[tid + 128];
+        if (sdata[tid] != temp)
+        {
+            sdata[tid] == globaltemp
+                ? ind[tid] = i
+                : ind[tid] = i + blockSize;
         }
-    } 
-    item_ct1.barrier();
 
-    
-    if (tid < 64) {
-        if (sdata[tid] < sdata[tid + 64]) {
-            ind[tid] = ind[tid + 64]; 
-            sdata[tid] = sdata[tid + 64];
-        }
-    } 
-    
-    item_ct1.barrier();
-
-    
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 32])) 
-	{
-        
-            ind[tid] = ind[tid + 32]; 
-            sdata[tid] = sdata[tid + 32];
+        i += gridSize;
     }
 
     item_ct1.barrier();
-  
-    if ( (tid < 32) &&  (sdata[tid] < sdata[tid + 16])) {
-            ind[tid] = ind[tid + 16]; 
-            sdata[tid] = sdata[tid + 16];
-    } 
-    
+
+    if (tid < 128)
+    {
+        if (sdata[tid] < sdata[tid + 128])
+        {
+            ind[tid] = ind[tid + 128];
+            sdata[tid] = sdata[tid + 128];
+        }
+    }
+
     item_ct1.barrier();
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 8])) {
-            ind[tid] = ind[tid + 8]; 
-            sdata[tid] = sdata[tid + 8];
-    } 
-    
+
+    if (tid < 64)
+    {
+        if (sdata[tid] < sdata[tid + 64])
+        {
+            ind[tid] = ind[tid + 64];
+            sdata[tid] = sdata[tid + 64];
+        }
+    }
+
     item_ct1.barrier();
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 4])) {
-            ind[tid] = ind[tid + 4]; 
-            sdata[tid] = sdata[tid + 4];
-    } 
-    
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 32]))
+    {
+        ind[tid] = ind[tid + 32];
+        sdata[tid] = sdata[tid + 32];
+    }
+
     item_ct1.barrier();
-  
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 2])) {
-            ind[tid] = ind[tid + 2]; 
-            sdata[tid] = sdata[tid + 2];
-    } 
-    
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 16]))
+    {
+        ind[tid] = ind[tid + 16];
+        sdata[tid] = sdata[tid + 16];
+    }
+
     item_ct1.barrier();
-  
-    if ((tid < 32) && (sdata[tid] < sdata[tid + 1])) {
-            ind[tid] = ind[tid + 1]; 
-            sdata[tid] = sdata[tid + 1];
-    } 
-    
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 8]))
+    {
+        ind[tid] = ind[tid + 8];
+        sdata[tid] = sdata[tid + 8];
+    }
+
     item_ct1.barrier();
-    
-    if (tid == 0) g_odata[item_ct1.get_group(2)] = sdata[0];
-    if (tid == 0) g_index[item_ct1.get_group(2)] = ind[0]; 
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 4]))
+    {
+        ind[tid] = ind[tid + 4];
+        sdata[tid] = sdata[tid + 4];
+    }
+
+    item_ct1.barrier();
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 2]))
+    {
+        ind[tid] = ind[tid + 2];
+        sdata[tid] = sdata[tid + 2];
+    }
+
+    item_ct1.barrier();
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 1]))
+    {
+        ind[tid] = ind[tid + 1];
+        sdata[tid] = sdata[tid + 1];
+    }
+
+    item_ct1.barrier();
+
+    if (tid == 0)
+        g_odata[item_ct1.get_group(2)] = sdata[0];
+
+    if (tid == 0)
+        g_index[item_ct1.get_group(2)] = ind[0];
+}
+
+// float C problems
+template <unsigned int blockSize>
+void FindBI(float *d_F, float *d_y, float *d_alpha, float *g_odata,
+            int *g_index, unsigned int n,
+            sycl::nd_item<3> item_ct1, float C,
+            float *sdata, int *ind)
+{
+    unsigned int tid = item_ct1.get_local_id(2);
+    unsigned int i = item_ct1.get_group(2) * (blockSize * 2) + tid;
+    unsigned int gridSize = blockSize * 2 * item_ct1.get_group_range(2);
+
+    sdata[tid] = -FLT_MAX;
+    ind[tid] = 0;
+
+    float temp;
+    float globaltemp;
+
+    float LocalCloseY;
+    float LocalFarY;
+    float maxtemp;
+
+    // reduction use outside loop ??
+    while (i < n)
+    {
+        LocalCloseY = d_y[i];
+        LocalFarY = (i + blockSize) < n ? d_y[i + blockSize] : 0;
+
+        maxtemp = sycl::fmax(
+            globaltemp =
+                (LocalCloseY * d_alpha[i]) < (LocalCloseY == 1 ? C : 0)
+                    ? -(d_F[i] * LocalCloseY)
+                    : -FLT_MAX,
+            i + blockSize < n
+                ? ((LocalFarY * d_alpha[i + blockSize]) < (LocalFarY == 1 ? C : 0)
+                       ? -(d_F[i + blockSize] * LocalFarY)
+                       : -FLT_MAX)
+                : -FLT_MAX);
+
+        sdata[tid] = sycl::fmax(temp = sdata[tid], maxtemp);
+
+        if (sdata[tid] != temp)
+        {
+            sdata[tid] == globaltemp
+                ? ind[tid] = i
+                : ind[tid] = i + blockSize;
+        }
+
+        i += gridSize;
+    }
+
+    item_ct1.barrier();
+
+    if (tid < 128)
+    {
+        if (sdata[tid] < sdata[tid + 128])
+        {
+            ind[tid] = ind[tid + 128];
+            sdata[tid] = sdata[tid + 128];
+        }
+    }
+    item_ct1.barrier();
+
+    if (tid < 64)
+    {
+        if (sdata[tid] < sdata[tid + 64])
+        {
+            ind[tid] = ind[tid + 64];
+            sdata[tid] = sdata[tid + 64];
+        }
+    }
+    item_ct1.barrier();
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 32]))
+    {
+        ind[tid] = ind[tid + 32];
+        sdata[tid] = sdata[tid + 32];
+    }
+    item_ct1.barrier();
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 16]))
+    {
+        ind[tid] = ind[tid + 16];
+        sdata[tid] = sdata[tid + 16];
+    }
+    item_ct1.barrier();
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 8]))
+    {
+        ind[tid] = ind[tid + 8];
+        sdata[tid] = sdata[tid + 8];
+    }
+    item_ct1.barrier();
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 4]))
+    {
+        ind[tid] = ind[tid + 4];
+        sdata[tid] = sdata[tid + 4];
+    }
+    item_ct1.barrier();
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 2]))
+    {
+        ind[tid] = ind[tid + 2];
+        sdata[tid] = sdata[tid + 2];
+    }
+    item_ct1.barrier();
+
+    if ((tid < 32) && (sdata[tid] < sdata[tid + 1]))
+    {
+        ind[tid] = ind[tid + 1];
+        sdata[tid] = sdata[tid + 1];
+    }
+    item_ct1.barrier();
+
+    if (tid == 0)
+        g_odata[item_ct1.get_group(2)] = sdata[0];
+
+    if (tid == 0)
+        g_index[item_ct1.get_group(2)] = ind[0];
 }
 
 
@@ -425,8 +449,7 @@ void FindStoppingJ(float *d_F, float* d_y,float* d_alpha,float *g_odata,unsigned
 }
 
 
-
-
+//uncountable loop
 void UpdateF(float * F,float *KernelColI,float* KernelColJ, float* d_y,float deltaalphai,float deltaalphaj,float yi,float yj,int n,
              sycl::nd_item<3> item_ct1)
 {
@@ -445,6 +468,7 @@ void UpdateF(float * F,float *KernelColI,float* KernelColJ, float* d_y,float del
 
 }
 
+//uncountable loop
 void RBFFinish(float *KernelCol, const float * KernelDotProd,const float* DotProd,const float* DotProdRow,const int n,
                sycl::nd_item<3> item_ct1, float kernelwidth)
 {

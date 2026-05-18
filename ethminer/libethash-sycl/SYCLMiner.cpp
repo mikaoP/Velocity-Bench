@@ -127,7 +127,7 @@ SYCLMiner::SYCLMiner(unsigned _index, SYSettings _settings, DeviceDescriptor & /
       m_settings(_settings),
       m_batch_size(_settings.gridSize * _settings.blockSize),
       m_streams_batch_size(_settings.gridSize * _settings.blockSize * _settings.streams),
-      m_DefaultQueue(sycl::queue(sycl::gpu_selector_v))
+      m_DefaultQueue(sycl::queue(sycl::default_selector_v))
 
 {
     DisplayDeviceProperties(m_DefaultQueue.get_device());
@@ -335,7 +335,7 @@ void SYCLMiner::enumDevices(std::map<string, DeviceDescriptor> &_DevicesCollecti
     try {
         int    i = 0;
         size_t freeMem; ///, totalMem;
-        std::vector<sycl::device> vDevices({sycl::device(sycl::gpu_selector_v)});
+        std::vector<sycl::device> vDevices({sycl::device(sycl::default_selector_v)});
         for (auto &device : vDevices) {
 
             std::string const uniqueId = device.get_info<sycl::info::device::name>();

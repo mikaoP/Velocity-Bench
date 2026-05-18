@@ -33,3 +33,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
       } \
    } while(0)
 #endif
+
+// Always-on debug-style assert. Used to selectively re-enable specific call
+// sites under nodebug to bisect which printf-anchor restores correctness.
+#define qs_assert_keep( cond)                   \
+   do \
+   { \
+      if (!(cond)) \
+      { \
+        sycl::ext::oneapi::experimental::printf("file=%s: line=%d ERROR\n",__FILE__,__LINE__); \
+      } \
+   } while(0)

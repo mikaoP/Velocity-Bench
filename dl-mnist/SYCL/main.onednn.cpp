@@ -52,7 +52,7 @@ int main(int argc, const char** argv) {
 
         cout << endl << "\t\tWelcome to DL-MNIST workload: SYCL version." << endl << endl;
         cout << "=======================================================================" << endl;
-        sycl::device* dht = new sycl::device(sycl::gpu_selector_v);
+        sycl::device* dht = new sycl::device(sycl::cpu_selector_v);
 #ifdef DEVICE_TIMER  
         start = get_time_now();
 #endif    
