@@ -17,6 +17,8 @@
 #ifndef THOTH_LOOKUPS_TRACE_HEADERS_LOOKUP_HPP
 #define THOTH_LOOKUPS_TRACE_HEADERS_LOOKUP_HPP
 
+#include <cstdint>
+
 namespace thoth {
     namespace lookups {
 

@@ -129,4 +129,4 @@ endif()
 message(STATUS "Compilation flags set to: ${CMAKE_CXX_FLAGS}")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} sycl stdc++fs)
+target_link_libraries(${PROJECT_NAME} sycl)

@@ -1,7 +1,7 @@
 {
   "traces": {
     "min": 601,
-    "max": 610,
+    "max": 602,
     "sort-type": "CSR",
     "paths": [
       "data/iso/shots/shots0601_0800.segy"

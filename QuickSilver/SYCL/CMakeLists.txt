@@ -182,4 +182,4 @@ endif()
 message(STATUS "CXX Compilation flags set to: ${CMAKE_CXX_FLAGS}")
 
 add_executable(qs ${SRC_LIST})
-target_link_libraries(qs sycl stdc++ stdc++fs)
+target_link_libraries(qs sycl stdc++)

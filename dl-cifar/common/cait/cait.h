@@ -107,7 +107,7 @@ namespace dl_cifar::common {
             
 
                 // ----------------- train --------------------------
-                int iterations = 1; 
+                int iterations = 1;
                 for(int i=0; i<iterations; i++) {
                     //read Cifar image data, then resize and finally do a caitM36 FW pass 
                     Time start = get_time_now();

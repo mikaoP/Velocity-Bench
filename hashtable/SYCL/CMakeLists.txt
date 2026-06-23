@@ -94,4 +94,4 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} sycl OpenCL stdc++fs)
+target_link_libraries(${PROJECT_NAME} sycl OpenCL)

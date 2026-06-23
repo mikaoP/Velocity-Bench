@@ -85,7 +85,7 @@ namespace dl_cifar::common {
                     selectedVitParams = VitConfigs::vitL16_params_fullsize;
                 } 
 
-                int iterations = 1; 
+                int iterations = 1;
 
                 
                 int noOfPatches = (selectedVitParams.imgWidth * selectedVitParams.imgHeight) / (selectedVitParams.patchSize * selectedVitParams.patchSize); 

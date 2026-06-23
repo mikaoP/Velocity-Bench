@@ -127,8 +127,8 @@ HPLlib       = $(LIBdir)/libhpl.a
 # header files,  MPlib  is defined  to be the name of  the library to be
 # used. The variable MPdir is only used for defining MPinc and MPlib.
 #
-OneAPIdir    = $(ONEAPI_ROOT)
-MPdir        = $(OneAPIdir)/mpi/latest/
+OneAPIdir    = $(HPCKIT)
+MPdir        = $(I_MPI_ROOT)
 MPinc        = -I$(MPdir)/include/
 MPlib        = -lmpi #$(MPdir)/lib/release/libmpi.so
 #
@@ -139,8 +139,8 @@ MPlib        = -lmpi #$(MPdir)/lib/release/libmpi.so
 # header files,  LAlib  is defined  to be the name of  the library to be
 # used. The variable LAdir is only used for defining LAinc and LAlib.
 #
-LAdir        = $(OneAPIdir)/mkl/latest/lib/intel64/
-LAinc        = -I$(OneAPIdir)/mkl/latest/include/intel64/
+LAdir        = $(MKLROOT)/lib/
+LAinc        = -I$(MKLROOT)/include/
 LAlib 	     = -L$(TOPdir)/src/dpcpp/ -ldgemm  -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -liomp5 -lm -I$(TOPdir)/src/dpcpp/
 #
 # ----------------------------------------------------------------------
@@ -218,8 +218,11 @@ HPL_DEFS     = $(F2CDEFS) $(HPL_OPTS) $(HPL_INCLUDES)
 # - Compilers / linkers - Optimization flags ---------------------------
 # ----------------------------------------------------------------------
 #
-CC           = mpicc
-CCNOOPT      = $(HPL_DEFS)
+CC           = mpiicx
+# -fp-model=precise required for HPL_dlamch.c: icx's default fp-model=fast
+# constant-folds the FP-property probe loops in HPL_dlamc2 and makes eps=0,
+# producing NaN in the residual check. -O0 alone is not enough on icx.
+CCNOOPT      = $(HPL_DEFS) -fp-model=precise -O0
 CCFLAGS      = $(HPL_DEFS) -fomit-frame-pointer -O3 -funroll-loops -W -Wall -fopenmp
 #
 # On some platforms,  it is necessary  to use the Fortran linker to find
@@ -231,8 +234,12 @@ LINKFLAGS = $(CCFLAGS)
 else ifeq ($(USE_AMD_BACKEND),ON)
 LINKER       = $(CC)
 LINKFLAGS = $(CCFLAGS)
+else ifeq ($(USE_ONEMATH_BACKEND),ON)
+ONEMATH_ROOT ?= /home/Computational/rpenacob/claude/pocl/install/oneMath
+LINKER       = mpiicpx -fsycl
+LINKFLAGS    = $(CCFLAGS) -L$(ONEMATH_ROOT)/lib -lonemath -lonemath_blas_generic -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread
 else
-LINKER       = mpiicpc -cxx=icpx -fsycl
+LINKER       = mpiicpx -fsycl
 LINKFLAGS    = $(CCFLAGS) -lmkl_sycl -lmkl_core -lmkl_cdft_core -lmkl_gf_ilp64 -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_intel_ilp64 -lmkl_intel_lp64 -lmkl_rt -lmkl_sequential -lmkl_tbb_thread
 endif
 #

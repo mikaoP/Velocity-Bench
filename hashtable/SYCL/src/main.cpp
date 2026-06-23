@@ -21,7 +21,7 @@
 
 // #define DEBUG_TIME
 #define CPP_MODULE "MAIN"
-#define ITERATIONS 10
+#define ITERATIONS 2
 
 #define TIMER_START(name) time_start_ ## name = std::chrono::steady_clock::now();
 #define TIMER_END(name)                                         \

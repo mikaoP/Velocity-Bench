@@ -143,6 +143,6 @@ endif()
 
 message(STATUS "Compilation flags set to: ${CMAKE_CXX_FLAGS}")
 
-link_libraries(stdc++fs dnnl)
+link_libraries(dnnl)
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} sycl stdc++fs dnnl)
+target_link_libraries(${PROJECT_NAME} sycl dnnl)

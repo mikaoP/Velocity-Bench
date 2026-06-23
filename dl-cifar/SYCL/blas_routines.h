@@ -52,7 +52,7 @@
 #endif
 #include <oneapi/mkl.hpp>
 
-using oneapi::mkl::blas::gemm;
+using oneapi::mkl::blas::column_major::gemm;
 using oneapi::mkl::transpose;
 //using oneapi::mkl::blas::row_major;
 #endif
@@ -361,7 +361,7 @@ class BlasRoutines {
         static int doAxpy(LangHandle *langHandle, int noOfElems, float *alpha, float *d_x, float *d_y) {
             Tracer::func_begin("BlasRoutines::doAxpy");    
             try {
-                oneapi::mkl::blas::row_major::axpy(*(langHandle->getSyclQueue()), noOfElems, *alpha, d_x, 1, d_y, 1);
+                oneapi::mkl::blas::column_major::axpy(*(langHandle->getSyclQueue()), noOfElems, *alpha, d_x, 1, d_y, 1);
             }
             catch (sycl::exception const& e) {
                 std::cout << "\t\tCaught synchronous SYCL exception during axpy:\n"
@@ -382,7 +382,7 @@ class BlasRoutines {
         static int scaleVector(LangHandle *langHandle, int noOfElems, float *alpha, float *d_x, int inc) {
             Tracer::func_begin("BlasRoutines::scaleVector");
             try {
-                oneapi::mkl::blas::row_major::scal(*(langHandle->getSyclQueue()), noOfElems, *alpha, d_x, inc);
+                oneapi::mkl::blas::column_major::scal(*(langHandle->getSyclQueue()), noOfElems, *alpha, d_x, inc);
             }
             catch (sycl::exception const& e) {
                 std::cout << "\t\tCaught synchronous SYCL exception during scal:\n"

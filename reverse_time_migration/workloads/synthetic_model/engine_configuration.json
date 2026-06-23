@@ -30,7 +30,10 @@
       }
     },
     "forward-collector": {
-      "type": "three"
+      "type": "three",
+      "properties": {
+        "boundary-saving": false
+      }
     },
     "trace-manager": {
       "type": "binary",

@@ -123,6 +123,7 @@
 #include <chrono> 
 #include <sycl/sycl.hpp>
 #include "oneapi/mkl/blas.hpp"
+#include "mkl_cblas.h"
 #include "dpcpp_dgemm.h"
 
 
@@ -273,7 +274,7 @@ if ((M==0)||(K==0)||(N==0))
       #ifdef DEVICE_DEBUG
    	std::cout << "gemm-CPU\n";
       #endif
-      cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,  M, N, K, ALPHA, A, LDA, B, LDB, BETA, C, LDC);
+      cblas_dgemm(CblasColMajor, (CBLAS_TRANSPOSE)TRANSA, (CBLAS_TRANSPOSE)TRANSB,  M, N, K, ALPHA, A, LDA, B, LDB, BETA, C, LDC);
               
       return;
     }      
@@ -338,7 +339,7 @@ if ((M==0)||(K==0)||(N==0))
 		});
 	}).wait_and_throw();
     #else
-    oneapi::mkl::blas::gemm(mQueue, transA, transB, M, N, K, ALPHA, A_buffer, LDA, B_buffer, LDB, BETA, C_buffer, LDC);
+    oneapi::mkl::blas::column_major::gemm(mQueue, transA, transB, M, N, K, ALPHA, A_buffer, LDA, B_buffer, LDB, BETA, C_buffer, LDC);
     mQueue.wait();
     #endif
     mQueue.memcpy(C, C_buffer, c_size_total * sizeof(double)).wait(); 
@@ -391,7 +392,7 @@ void dpcpp_dtrsm
          std::cout << "dtrsm-CPU\n";
         #endif 	 
 
-        cblas_dtrsm(CblasColMajor, CblasLeft, CblasLower, CblasNoTrans, CblasUnit, M, N, ALPHA, A, LDA, B, LDB);
+        cblas_dtrsm(CblasColMajor, (CBLAS_SIDE)SIDE, (CBLAS_UPLO)UPLO, (CBLAS_TRANSPOSE)TRANS, (CBLAS_DIAG)DIAG, M, N, ALPHA, A, LDA, B, LDB);
      	return;
     }
    
@@ -448,7 +449,7 @@ void dpcpp_dtrsm
      
     #else
 
-    oneapi::mkl::blas::trsm(mQueue, side, uplo, trans, diag, M, N, ALPHA, A_buffer, LDA, B_buffer, LDB);
+    oneapi::mkl::blas::column_major::trsm(mQueue, side, uplo, trans, diag, M, N, ALPHA, A_buffer, LDA, B_buffer, LDB);
     mQueue.wait();
 
 

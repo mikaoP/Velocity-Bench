@@ -119,4 +119,4 @@ include_directories(
 
 add_executable(sobel_filter ${SOURCES})
 
-target_link_libraries(sobel_filter ${OpenCV_LIBS} stdc++ stdc++fs)
+target_link_libraries(sobel_filter ${OpenCV_LIBS} stdc++)

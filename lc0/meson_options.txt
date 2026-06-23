@@ -232,3 +232,7 @@ option('CUDA_NVCC_FLAGS',
        type: 'array',
        value: [],
        description: 'Override general nvcc flags.')
+option('ONEMATH_ROOT',
+       type: 'string',
+       value: '',
+       description: 'If set, use oneMath generic_blas instead of MKL SYCL')

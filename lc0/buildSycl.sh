@@ -48,9 +48,9 @@ BUILDDIR=build/${BUILDTYPE}
 
 if [ -f ${BUILDDIR}/build.ninja ]
 then
-  meson.py configure ${BUILDDIR} -DUSE_AMD=false -DUSE_SYCL=true -DUSE_CUDA=false -Dbuildtype=${BUILDTYPE} -Dprefix=${INSTALL_PREFIX:-/usr/local} "$@" 
+  meson configure ${BUILDDIR} -DUSE_AMD=false -DUSE_SYCL=true -DUSE_CUDA=false -Dbuildtype=${BUILDTYPE} -Dprefix=${INSTALL_PREFIX:-/usr/local} "$@" 
 else
-  meson.py ${BUILDDIR} --buildtype ${BUILDTYPE} -DUSE_AMD=false -DUSE_SYCL=true -DUSE_CUDA=false --prefix ${INSTALL_PREFIX:-/usr/local} "$@"
+  meson ${BUILDDIR} --buildtype ${BUILDTYPE} -DUSE_AMD=false -DUSE_SYCL=true -DUSE_CUDA=false --prefix ${INSTALL_PREFIX:-/usr/local} "$@"
 fi
 
 cd ${BUILDDIR}

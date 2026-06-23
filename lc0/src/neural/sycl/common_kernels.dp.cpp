@@ -879,15 +879,15 @@ void OutputInputTransform(int N, int C, int se_K, T* output, const T* input,
       cgh.parallel_for(
           sycl::nd_range<3>(sycl::range<3>(1, 1, N) * sycl::range<3>(1, 1, C), sycl::range<3>(1, 1, C)),
           [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
-            
-            //float **shared_sums = (float **) shared_sums_acc_ct1.get_pointer();   
+
+            //float **shared_sums = (float **) shared_sums_acc_ct1.get_pointer();
 
             OutputTransform_SE_relu_InputTransform_kernel<float, activation,
                                                           use_bias, use_skip>(
                 N, C, se_K, output, input, (float*)skip, bias, w1, b1, w2, b2,
                 item_ct1, shared_data_acc_ct1.get_pointer(),
                 shared_sums_acc_ct1);
-          
+
           });
     });
   }

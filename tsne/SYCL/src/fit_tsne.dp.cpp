@@ -42,9 +42,9 @@
 #include "include/fit_tsne.h"
 #include "verify.hpp"
 
-// #ifndef DEBUG_TIME
-// #define DEBUG_TIME
-// #endif
+#ifndef DEBUG_TIME
+#define DEBUG_TIME
+#endif
 
 #define TIMER_START_() time_start_ = std::chrono::steady_clock::now();
 #define TIMER_END_()                                                                         \
@@ -87,6 +87,8 @@ double tsnecuda::RunTsne(tsnecuda::Options& opt, int& success)
     auto _time_init_low_dim     = duration;
     auto _time_init_fft         = duration;
     auto _time_precompute_2d    = duration;
+    auto _time_p2d_reduce       = duration;
+    auto _time_p2d_fft          = duration;
     auto _time_nbodyfft         = duration;
     auto _time_compute_charges  = duration;
     auto _time_other            = duration;
@@ -567,7 +569,7 @@ double tsnecuda::RunTsne(tsnecuda::Options& opt, int& success)
             0.0f,
             oneapi::dpl::maximum<float>());
 #ifdef DEBUG_TIME
-        END_IL_TIMER(_time_precompute_2d);
+        END_IL_TIMER(_time_p2d_reduce);
 #endif
 
         float box_width = (max_coord - min_coord) / (float)n_boxes_per_dim;
@@ -597,7 +599,7 @@ double tsnecuda::RunTsne(tsnecuda::Options& opt, int& success)
             qts, duration_fft1);
 
 #ifdef DEBUG_TIME
-        END_IL_TIMER(_time_precompute_2d);
+        END_IL_TIMER(_time_p2d_fft);
 #endif
 
 #ifdef DEBUG_TIME
@@ -741,6 +743,8 @@ double tsnecuda::RunTsne(tsnecuda::Options& opt, int& success)
         PRINT_IL_TIMER(_time_init_fft);
         PRINT_IL_TIMER(_time_compute_charges);
         PRINT_IL_TIMER(_time_precompute_2d);
+        PRINT_IL_TIMER(_time_p2d_reduce);
+        PRINT_IL_TIMER(_time_p2d_fft);
         PRINT_IL_TIMER(_time_nbodyfft);
         PRINT_IL_TIMER(_time_repl);
         PRINT_IL_TIMER(_time_attr);

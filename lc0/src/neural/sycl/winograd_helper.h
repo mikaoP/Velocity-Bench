@@ -48,9 +48,8 @@
 namespace lczero {
 namespace cudnn_backend {
 
-
 #ifdef INLINE
-inline __attribute__((always_inline)) float mishActivate(float el) { 
+inline __attribute__((always_inline)) float mishActivate(float el) {
 #else
 float mishActivate(float el) {
 #endif
@@ -436,7 +435,7 @@ void OutputTransform_kernel(int N, int C, int se_K, T* output,
       }
   #else
        #pragma unroll
-       for (int i = 0; i < 192; i++) {
+       for (int i = 0; i < C; i++) {   // FIX: was hardcoded 192 -> reads uninit mem when C<192
         S += shared_data[i] * float((w1[i*se_K + k]));
       }
   #endif

@@ -144,7 +144,7 @@ int main(int argc, const char* argv[])
     // int iScaleFactor(parser.GetIntegerSetting("-f"));
     std::string inputfile = parser.GetSetting("-i");
     int nIterations = parser.GetIntegerSetting("-n");
-    if(nIterations < 0 || nIterations > 100) {
+    if(nIterations < 0 || nIterations > 10000) {
         LOG_ERROR("# of iterations must be within range [1, 100]");
     }
 

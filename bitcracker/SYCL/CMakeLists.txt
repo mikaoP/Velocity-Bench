@@ -106,4 +106,4 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_executable(bitcracker ${SOURCES})
 
-target_link_libraries(bitcracker sycl OpenCL stdc++fs)
+target_link_libraries(bitcracker sycl OpenCL)

@@ -107,14 +107,18 @@ dpcpp_dgemm.o : dpcpp_dgemm.cpp
 #DEFINES += -DACML
 #DEFINES += -DGOTO
 
+ONEMATH_ROOT ?= /home/Computational/rpenacob/claude/pocl/install/oneMath
+
 %.o: %.cpp
 ifeq ($(USE_NVIDIA_BACKEND),ON)
 	clang++ -O2 -fsycl -fsycl-targets=nvptx64-nvidia-cuda -c -fPIC $(DEFINES) $*.cpp -o $*.o -DUSE_CUBLAS
 else ifeq ($(USE_AMD_BACKEND),ON)
-	clang++ -O2 -fsycl -fsycl-targets=amd_gpu_gfx90a -c -fPIC $(DEFINES) $*.cpp -o $*.o -DUSE_HIPBLAS -D__HIP_PLATFORM_AMD__  
+	clang++ -O2 -fsycl -fsycl-targets=amd_gpu_gfx90a -c -fPIC $(DEFINES) $*.cpp -o $*.o -DUSE_HIPBLAS -D__HIP_PLATFORM_AMD__
+else ifeq ($(USE_ONEMATH_BACKEND),ON)
+	icpx -fsycl -O2 -c -fPIC -I$(ONEMATH_ROOT)/include -I$(MKLROOT)/include -DMKL_ILP64 $(DEFINES) $*.cpp -o $*.o
 else
-	icpx -fsycl -O2 -c -fPIC $(DEFINES) $*.cpp -o $*.o 
-endif	
+	icpx -fsycl -O2 -c -fPIC $(DEFINES) $*.cpp -o $*.o
+endif
 
 libdgemm.so.1.0.1: $(OBJS)
 ifeq ($(USE_NVIDIA_BACKEND),ON)
@@ -124,6 +128,11 @@ ifeq ($(USE_NVIDIA_BACKEND),ON)
 	ln -sf libdgemm.so.1 libdgemm.so
 else ifeq ($(USE_AMD_BACKEND),ON)
 	clang++ -O3 -std=c++17 -shared -Wl,-soname,libdgemm.so.1 -o libdgemm.so.1.0.1 $(OBJS) -lsycl -lhipblas -fsycl -fsycl-targets=amd_gpu_gfx90a
+	ln -sf libdgemm.so.1.0.1 libdgemm.so.1.0
+	ln -sf libdgemm.so.1.0 libdgemm.so.1
+	ln -sf libdgemm.so.1 libdgemm.so
+else ifeq ($(USE_ONEMATH_BACKEND),ON)
+	icpx -fsycl -fsycl-device-code-split=per_kernel -L$(ONEMATH_ROOT)/lib -lonemath -lonemath_blas_generic -L$(MKLROOT)/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lsycl -lOpenCL -lpthread -lm -ldl -fPIC -O2 -shared -Wl,-soname,libdgemm.so.1 -o libdgemm.so.1.0.1 $(OBJS)
 	ln -sf libdgemm.so.1.0.1 libdgemm.so.1.0
 	ln -sf libdgemm.so.1.0 libdgemm.so.1
 	ln -sf libdgemm.so.1 libdgemm.so

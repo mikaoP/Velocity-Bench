@@ -1,1 +1,1 @@
-/gpfs/scratch/bsc15/bsc015728/sycl_pocl/Velocity-Bench/hplinpack/dpcpp/hpl-2.3/Make.intel64
+/home/Computational/rpenacob/claude/pocl/sources/Velocity-Bench/hplinpack/dpcpp/hpl-2.3/Make.intel64

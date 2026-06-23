@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -299,7 +299,7 @@ elif [ "$USE_DPC" == "ON" ]; then
   echo -e "${YELLOW}Overriding--Building in NOMODE mode${NC}"
   echo -e "${YELLOW}Overriding--Using dpcpp compiler${NC}"
   BUILD_TYPE="NOMODE"
-  CXX_FLAGS="-O3 -std=c++17"
+  CXX_FLAGS="-O3 -std=c++17 -fsycl"
 elif [ "$USE_DPC_BE" == "ON" ]; then
   echo -e "${YELLOW}Overriding--Building in NOMODE mode${NC}"
   echo -e "${YELLOW}Overriding--Using dpcpp compiler with NVIDIA BE${NC}"

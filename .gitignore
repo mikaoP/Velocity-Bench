@@ -64,3 +64,27 @@
 
 # which matches 'target' in any sub folder
 *.syntastic_cpp_config
+
+# ---------------------------------------------------------------------------
+# Single-CPU pocl-vs-Intel reproduction: large datasets & generated outputs.
+# These are NOT versioned here. See REPRODUCE.md for how to obtain / where to
+# place each one.
+# ---------------------------------------------------------------------------
+/reverse_time_migration/data/
+/reverse_time_migration/results/
+/SeisAcoMod2D/data/
+/SeisAcoMod2D/output/
+/dl-cifar/datasets/
+/dl-mnist/datasets/
+/easywave/data/
+/lc0/networks/
+
+# Generated outputs / build artifacts not caught by the rules above
+*.binvox
+*.segy
+*.grd
+*.so.*
+
+# Local backups
+*.bak
+*.orig
