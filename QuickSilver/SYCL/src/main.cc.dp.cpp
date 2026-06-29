@@ -486,6 +486,14 @@ void cycleTracking(MonteCarlo *monteCarlo, uint64_cu *tallies, uint64_cu *tallie
 #if defined(HAVE_SYCL)
     ParticleVault_d *processingVault_d = sycl::malloc_device<ParticleVault_d>(1, sycl_device_queue);
     ParticleVault_d *processedVault_d = sycl::malloc_device<ParticleVault_d>(1, sycl_device_queue);
+    // FIX: malloc_device does not zero memory, so these vault structs' _particles pointer field would
+    // otherwise hold uninitialised device memory. Zero both structs so that any field not populated by
+    // copyParticleVault_h2d(..., first=true) reads back as null -> the teardown free(null) is a no-op,
+    // instead of freeing a garbage value that pocl's strict USM tracking rejects (CL_INVALID_VALUE).
+    // (The queue is out-of-order, so wait() to order the memsets before the structs are used.)
+    sycl_device_queue.memset(processingVault_d, 0, sizeof(ParticleVault_d));
+    sycl_device_queue.memset(processedVault_d, 0, sizeof(ParticleVault_d));
+    sycl_device_queue.wait();
     bool first = true;
 #endif
     do
